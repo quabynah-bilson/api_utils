@@ -1,3 +1,7 @@
+## 0.0.1-dev01
+
+* Added log interceptor
+
 ## 0.0.1
 
 * Added grpc call wrappers
