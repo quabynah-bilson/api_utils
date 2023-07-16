@@ -37,6 +37,7 @@ abstract interface class NoParamsUseCase<T> extends UseCase<T, void> {
 /// A special type of [UseCase] that executes on a different isolate.
 /// It is useful when performing expensive operations that ideally should
 /// not be performed on the main isolate.
+/// Responses are sent back to the main isolate using [SendPort] as [UseCaseResult]
 abstract class BackgroundUseCase<T, P> extends UseCase<T, P> {
   const BackgroundUseCase();
 

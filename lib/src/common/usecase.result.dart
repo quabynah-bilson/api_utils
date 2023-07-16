@@ -10,6 +10,9 @@ sealed class UseCaseResult<T> extends Equatable {
   /// error/failure
   factory UseCaseResult.error(String cause) =>
       UseCaseResultError<T>.create(cause);
+
+  UseCaseResult<T> fold(UseCaseResultSuccess<T> Function(T l) ifSuccess,
+      UseCaseResultError<T> Function(String r) ifError);
 }
 
 /// success result wrapper
@@ -21,6 +24,11 @@ final class UseCaseResultSuccess<T> extends UseCaseResult<T> {
 
   @override
   List<Object> get props => [value as Object];
+
+  @override
+  UseCaseResult<T> fold(UseCaseResultSuccess<T> Function(T l) ifSuccess,
+          UseCaseResultError<T> Function(String r) ifError) =>
+      ifSuccess(value);
 }
 
 /// error result wrapper
@@ -33,4 +41,9 @@ final class UseCaseResultError<E> extends UseCaseResult<E> {
 
   @override
   List<Object> get props => [cause];
+
+  @override
+  UseCaseResult<E> fold(UseCaseResultSuccess<E> Function(E l) ifSuccess,
+          UseCaseResultError<E> Function(String r) ifError) =>
+      ifError(cause);
 }
