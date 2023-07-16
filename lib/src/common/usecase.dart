@@ -11,7 +11,7 @@ import 'package:api_utils/src/common/usecase.result.dart';
 abstract interface class UseCase<T, P> {
   const UseCase();
 
-  FutureOr<UseCaseResult<T>> execute(P params);
+  FutureOr<UseCaseResult<T>> call(P params);
 }
 
 /// A special type of [UseCase] that returns a [Stream] of [T] and accepts [P] as params.
@@ -41,15 +41,15 @@ abstract interface class NoParamsUseCase<T> extends UseCase<T, void> {
 abstract class BackgroundUseCase<T, P> extends UseCase<T, P> {
   const BackgroundUseCase();
 
-  void call(BackgroundUseCaseParams<P> params);
+  void execute(BackgroundUseCaseParams<P> params);
 
   @override
-  FutureOr<UseCaseResult<T>> execute(P params) async {
+  FutureOr<UseCaseResult<T>> call(P params) async {
     final completer = Completer<UseCaseResult<T>>();
     try {
       final receivePort = ReceivePort();
       final isolate = await Isolate.spawn(
-          call,
+          execute,
           BackgroundUseCaseParams(
               params: params, sendPort: receivePort.sendPort),
           onError: receivePort.sendPort);

@@ -1,3 +1,7 @@
+## 0.0.1-dev04
+
+* Replaced `execute` with `call` in `UseCase` class
+
 ## 0.0.1-dev03
 
 * Added `fold` method to `UseCaseResult` class
