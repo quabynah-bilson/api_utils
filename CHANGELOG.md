@@ -1,3 +1,7 @@
+## 0.0.1-dev02
+
+* Added use case results & background
+
 ## 0.0.1-dev01
 
 * Added log interceptor
