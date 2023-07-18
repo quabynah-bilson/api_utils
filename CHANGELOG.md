@@ -1,3 +1,7 @@
+### 0.0.1-dev05
+
+* Added `typedef` for API calls
+
 ## 0.0.1-dev04
 
 * Replaced `execute` with `call` in `UseCase` class

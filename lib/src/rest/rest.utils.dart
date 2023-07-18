@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:api_utils/src/common/typedef.dart' show FutureEither;
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -11,8 +12,8 @@ const _errorMessage =
     'It seems our servers are currently unavailable. Please try again later';
 
 /// wrapper for REST API calls
-Future<Either<L, R>> runApiCall<L, R>(
-  Future<HttpResponse<L>> Function() run, {
+FutureEither<L, R> runApiCall<L, R>(
+  Future<HttpResponse<R>> Function() run, {
   String? errMessage,
 }) async {
   try {
@@ -20,16 +21,16 @@ Future<Either<L, R>> runApiCall<L, R>(
     final result = await run();
 
     if (result.response.statusCode == HttpStatus.ok) {
-      return left(result.data);
+      return right(result.data);
     }
 
-    return right(
-        (result.response.statusMessage ?? errMessage ?? _errorMessage) as R);
+    return left(
+        (result.response.statusMessage ?? errMessage ?? _errorMessage) as L);
   } on DioException catch (err) {
-    return right((err.message ?? errMessage ?? _errorMessage) as R);
+    return left((err.message ?? errMessage ?? _errorMessage) as L);
   } on PlatformException catch (err) {
-    return right((err.message ?? errMessage ?? _errorMessage) as R);
+    return left((err.message ?? errMessage ?? _errorMessage) as L);
   } catch (err) {
-    return right(err.toString() as R);
+    return left(err.toString() as L);
   }
 }
