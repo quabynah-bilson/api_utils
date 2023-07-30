@@ -1,3 +1,7 @@
+### 0.0.1-dev06
+
+* fixed positioning of use case result
+
 ### 0.0.1-dev05
 
 * Added `typedef` for API calls
