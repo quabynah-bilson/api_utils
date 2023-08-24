@@ -1,3 +1,7 @@
+### 0.0.1-dev07
+
+* Added grpc call cancellation function (used to cancel grpc calls before completion)
+
 ### 0.0.1-dev06
 
 * fixed positioning of use case result

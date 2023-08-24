@@ -1,7 +1,11 @@
 import 'package:api_utils/src/common/typedef.dart' show FutureEither;
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:grpc/grpc.dart';
+import 'package:grpc/grpc.dart' as $grpc;
+
+/// global function to cancel a grpc call.
+Function() cancellationToken = () => debugPrint('cancellation token called');
 
 /// error message for server not available.
 const _errorMessage =
@@ -9,17 +13,18 @@ const _errorMessage =
 
 /// wrapper for grpc unary calls.
 FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
-  Future<R> Function() run, {
-  Either<L, R> Function(GrpcError)? onError,
+  $grpc.ResponseFuture<R> run, {
+  Either<L, R> Function($grpc.GrpcError)? onError,
   String? errMessage,
 }) async {
   try {
     // run the call.
-    final result = await run();
+    cancellationToken = run.cancel;
+    final result = await run.timeout(const Duration(seconds: 5));
     return right(result);
-  } on GrpcError catch (err) {
+  } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
-    if (err.code == StatusCode.unavailable) {
+    if (err.code == $grpc.StatusCode.unavailable) {
       return left(_errorMessage as L);
     }
 
@@ -35,17 +40,18 @@ FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
 
 /// wrapper for grpc stream calls.
 FutureEither<L, Stream<R>> runWithGrpcStreamZonedGuarded<L, R>(
-  Future<Stream<R>> Function() run, {
-  Either<L, Stream<R>> Function(GrpcError)? onError,
+  $grpc.ResponseStream<R> run, {
+  Either<L, Stream<R>> Function($grpc.GrpcError)? onError,
   String? errMessage,
 }) async {
   try {
     // run the stream.
-    final result = await run();
+    cancellationToken = run.cancel;
+    final result = run.asBroadcastStream();
     return right(result);
-  } on GrpcError catch (err) {
+  } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
-    if (err.code == StatusCode.unavailable) {
+    if (err.code == $grpc.StatusCode.unavailable) {
       return left(_errorMessage as L);
     }
 
