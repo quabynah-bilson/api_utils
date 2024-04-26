@@ -1,3 +1,7 @@
+### 0.0.1-dev09
+
+* Updated packages to latest versions
+
 ### 0.0.1-dev08
 
 * Updated `ObservableUseCase` to use **streams** rather than **futures**
