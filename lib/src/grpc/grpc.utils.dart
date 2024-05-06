@@ -1,11 +1,12 @@
+import 'dart:async';
+
 import 'package:api_utils/src/common/typedef.dart' show FutureEither;
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:grpc/grpc.dart' as $grpc;
 
 /// global function to cancel a grpc call.
-Function() cancellationToken = () => debugPrint('cancellation token called');
+Completer<void> cancellationToken = Completer<void>();
 
 /// error message for server not available.
 const _errorMessage =
@@ -16,11 +17,17 @@ FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
   $grpc.ResponseFuture<R> run, {
   Either<L, R> Function($grpc.GrpcError)? onError,
   String? errMessage,
+  Duration timeout = const Duration(seconds: 15),
 }) async {
   try {
     // run the call.
-    cancellationToken = run.cancel;
-    final result = await run.timeout(const Duration(seconds: 5));
+    final result = await run.timeout(timeout, onTimeout: () {
+      if (!cancellationToken.isCompleted) {
+        run.cancel();
+        cancellationToken.complete();
+      }
+      return Future.error('Request timed out');
+    });
     return right(result);
   } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
@@ -43,11 +50,41 @@ FutureEither<L, Stream<R>> runWithGrpcStreamZonedGuarded<L, R>(
   $grpc.ResponseStream<R> run, {
   Either<L, Stream<R>> Function($grpc.GrpcError)? onError,
   String? errMessage,
+  int maxRetries = 3,
+  Duration timeout = const Duration(minutes: 50),
+}) async {
+  for (var i = 0; i < maxRetries; i++) {
+    final result = await _retryGrpcStreamCall<L, R>(
+      run,
+      onError: onError,
+      errMessage: errMessage,
+      timeout: timeout,
+    );
+
+    if (result.isRight()) {
+      return result;
+    }
+  }
+
+  return left('Failed to get response' as L);
+}
+
+// retry a streaming call when it fails or times out
+FutureEither<L, Stream<R>> _retryGrpcStreamCall<L, R>(
+  $grpc.ResponseStream<R> run, {
+  Either<L, Stream<R>> Function($grpc.GrpcError)? onError,
+  String? errMessage,
+  Duration timeout = const Duration(minutes: 50),
 }) async {
   try {
     // run the stream.
-    cancellationToken = run.cancel;
-    final result = run.asBroadcastStream();
+    final result = run.timeout(timeout, onTimeout: (sink) {
+      if (!cancellationToken.isCompleted) {
+        run.cancel();
+        cancellationToken.complete();
+      }
+      sink.addError('Request timed out');
+    }).asBroadcastStream();
     return right(result);
   } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
