@@ -1,3 +1,7 @@
+### 0.0.1-dev11
+
+* Fix grpc call timeout issue
+
 ### 0.0.1-dev10
 
 * Updated grpc call cancellation function to use `Completer` rather than `Future`

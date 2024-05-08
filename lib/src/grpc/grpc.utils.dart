@@ -20,14 +20,22 @@ FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
   Duration timeout = const Duration(seconds: 15),
 }) async {
   try {
+    cancellationToken = Completer<void>();
+    cancellationToken.future.then((_) {
+      run.cancel();
+    });
     // run the call.
     final result = await run.timeout(timeout, onTimeout: () {
       if (!cancellationToken.isCompleted) {
-        run.cancel();
         cancellationToken.complete();
       }
-      return Future.error('Request timed out');
+      return Future.error(
+          const $grpc.GrpcError.unavailable('Request timed out'));
     });
+    // Check if the cancellationToken is completed. If it is, throw an error.
+    if (cancellationToken.isCompleted) {
+      throw const $grpc.GrpcError.cancelled('The operation was cancelled.');
+    }
     return right(result);
   } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
@@ -77,14 +85,21 @@ FutureEither<L, Stream<R>> _retryGrpcStreamCall<L, R>(
   Duration timeout = const Duration(minutes: 50),
 }) async {
   try {
+    cancellationToken = Completer<void>();
+    cancellationToken.future.then((_) {
+      run.cancel();
+    });
     // run the stream.
     final result = run.timeout(timeout, onTimeout: (sink) {
       if (!cancellationToken.isCompleted) {
-        run.cancel();
         cancellationToken.complete();
       }
-      sink.addError('Request timed out');
+      sink.addError(const $grpc.GrpcError.unavailable('Request timed out'));
     }).asBroadcastStream();
+    // Check if the cancellationToken is completed. If it is, throw an error.
+    if (cancellationToken.isCompleted) {
+      throw const $grpc.GrpcError.cancelled('The operation was cancelled.');
+    }
     return right(result);
   } on $grpc.GrpcError catch (err) {
     // if server is unavailable, return the error message.
