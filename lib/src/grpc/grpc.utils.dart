@@ -9,8 +9,7 @@ import 'package:grpc/grpc.dart' as $grpc;
 Completer<void> cancellationToken = Completer<void>();
 
 /// error message for server not available.
-const _errorMessage =
-    'It seems our servers are currently unavailable. Please try again later';
+const _errorMessage = 'It seems our servers are currently unavailable. Please try again later';
 
 /// wrapper for grpc unary calls.
 FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
@@ -29,8 +28,7 @@ FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
       if (!cancellationToken.isCompleted) {
         cancellationToken.complete();
       }
-      return Future.error(
-          const $grpc.GrpcError.unavailable('Request timed out'));
+      return Future.error(const $grpc.GrpcError.unavailable('Request timed out'));
     });
     // Check if the cancellationToken is completed. If it is, throw an error.
     if (cancellationToken.isCompleted) {
@@ -38,17 +36,20 @@ FutureEither<L, R> runWithGrpcUnaryZonedGuarded<L, R>(
     }
     return right(result);
   } on $grpc.GrpcError catch (err) {
+    if (onError != null) return onError.call(err);
+
     // if server is unavailable, return the error message.
     if (err.code == $grpc.StatusCode.unavailable) {
       return left(_errorMessage as L);
     }
 
-    // if there is a custom error handler, use it.
     if (onError != null) return onError.call(err);
     return left((err.message ?? errMessage ?? _errorMessage) as L);
   } on PlatformException catch (err) {
+    if (onError != null) return onError.call($grpc.GrpcError.unknown(err.message));
     return left((err.message ?? errMessage ?? _errorMessage) as L);
   } catch (err) {
+    if (onError != null) return onError.call($grpc.GrpcError.unknown(err.toString()));
     return left(err.toString() as L);
   }
 }
@@ -102,17 +103,19 @@ FutureEither<L, Stream<R>> _retryGrpcStreamCall<L, R>(
     }
     return right(result);
   } on $grpc.GrpcError catch (err) {
+    if (onError != null) return onError.call(err);
+
     // if server is unavailable, return the error message.
     if (err.code == $grpc.StatusCode.unavailable) {
       return left(_errorMessage as L);
     }
 
-    // if there is a custom error handler, use it.
-    if (onError != null) return onError.call(err);
     return left((err.message ?? errMessage ?? _errorMessage) as L);
   } on PlatformException catch (err) {
+    if (onError != null) return onError.call($grpc.GrpcError.unknown(err.message));
     return left((err.message ?? errMessage ?? _errorMessage) as L);
   } catch (err) {
+    if (onError != null) return onError.call($grpc.GrpcError.unknown(err.toString()));
     return left(err.toString() as L);
   }
 }

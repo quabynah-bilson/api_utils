@@ -1,3 +1,7 @@
+### 4.0.0+1
+
+* Invoked error handler to `grpc` methods
+
 ### 0.0.1-dev11
 
 * Fix grpc call timeout issue
