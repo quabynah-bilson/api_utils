@@ -1,3 +1,7 @@
+### 4.0.1+1
+
+* Updated `grpc` & `dio` package
+
 ### 4.0.0+1
 
 * Invoked error handler to `grpc` methods

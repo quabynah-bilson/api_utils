@@ -1,6 +1,6 @@
 name: api_utils
 description: A package to handle API requests for gRPC or REST
-version: 4.0.0+1
+version: 4.0.1+1
 homepage: "https://github.com/quabynah-bilson/api_utils"
 publish_to: "none"
 
@@ -11,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  grpc: ^3.2.4
-  dio: ^5.2.1+1
+  grpc: ^4.0.4
+  dio: ^5.8.0+1
   logger: ^2.2.0
   dartz: ^0.10.1
   retrofit: ^4.0.1
