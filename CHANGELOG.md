@@ -1,3 +1,7 @@
+### 4.1.0+1
+
+* Updated `grpc` package
+
 ### 4.0.1+1
 
 * Updated `grpc` & `dio` package

@@ -1,4 +1,4 @@
-library api_utils;
+library;
 
 export 'src/common/usecase.dart';
 export 'src/common/usecase.result.dart';
